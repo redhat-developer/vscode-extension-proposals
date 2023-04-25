@@ -1,4 +1,4 @@
 'use strict';
-export { RecommendationService } from './vscode/recommendationService';
-export { IStorageService } from './vscode/storageService';
-export { Recommendation } from './vscode/recommendation';
+export { RecommendationCore } from './vscode/recommendationCore';
+export { IRecommendationService } from './vscode/recommendationService';
+export { RecommendationModel, Recommendation } from './vscode/recommendationModel';
