@@ -1,17 +1,17 @@
-[![npm](https://img.shields.io/npm/v/@redhat-developer/vscode-extension-recommender?color=brightgreen)](https://www.npmjs.com/package/@redhat-developer/vscode-extension-recommender)
+[![npm](https://img.shields.io/npm/v/@redhat-developer/vscode-extension-proposals?color=brightgreen)](https://www.npmjs.com/package/@redhat-developer/vscode-extension-proposals)
 
-# Extension recommender
+# Extension Recommender
 
-This library helps managing Visual Studio Code extension recommendations. 
+This library helps manage Visual Studio Code extension recommendations, and allows extensions to inform users of other extensions that they work well with.
 
 # How to use this library
 
-## Add the `@redhat-developer/vscode-extension-recommender` dependency
+## Add the `@redhat-developer/vscode-extension-proposals` dependency
 
-In order to install [`@redhat-developer/vscode-extension-recommender`](https://github.com/redhat-developer/vscode-extension-recommender/) in your VS Code extension, open a terminal and execute:
+In order to install [`@redhat-developer/vscode-extension-proposals`](https://github.com/redhat-developer/vscode-extension-proposals/) in your VS Code extension, open a terminal and execute:
 
 ```
-npm i @redhat-developer/vscode-extension-recommender
+npm i @redhat-developer/vscode-extension-proposals
 ```
 
 # API / Use Cases
