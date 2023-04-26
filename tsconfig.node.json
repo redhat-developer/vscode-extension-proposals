@@ -1,0 +1,10 @@
+{
+	"extends": "./tsconfig.base.json",
+	"include": [
+		"src/main/*",
+		"src/index.ts"
+	],
+	"compilerOptions": {
+		"esModuleInterop": true
+	}
+}

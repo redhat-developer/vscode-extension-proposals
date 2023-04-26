@@ -1,0 +1,13 @@
+{
+	"extends": "./tsconfig.base.json",
+	"compilerOptions": {
+		"esModuleInterop": true,
+		"lib": [
+			"ES2020",
+			"WebWorker"
+		],
+	},
+	"include": [
+		"src/main/*"
+	]
+}

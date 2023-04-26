@@ -2,8 +2,8 @@
  *  Copyright (c) Red Hat, Inc. All rights reserved.
  *  Licensed under the EPL v2.0 License. See LICENSE file in the project root for license information.
  *-----------------------------------------------------------------------------------------------*/
-import path from "path";
-import { env } from "vscode";
+import * as path from "path";
+import * as vscode from "vscode";
 import { RecommendationModel } from '../recommendationModel';
 import { IStorageService } from '../storageService';
 import { deleteFile, exists, mkdir, readFile, writeFile } from './util/fsUtil';
@@ -37,8 +37,8 @@ export class StorageServiceImpl implements IStorageService {
             const model: RecommendationModel = await this.loadOrDefaultRecommendationModel();
             const now = Date.now();
             let newSession = false;
-            if( env.sessionId !== model.sessionId) {
-                model.sessionId = env.sessionId;
+            if( vscode.env.sessionId !== model.sessionId) {
+                model.sessionId = vscode.env.sessionId;
                 model.sessionTimestamp = now;
                 model.timelocked = [];
                 newSession = true;
@@ -77,7 +77,7 @@ export class StorageServiceImpl implements IStorageService {
             return false;
         }
         // We have a chance to write a lock. Let's try it. 
-        const nonce = generateNonce();
+        const nonce = this.generateNonce();
         const contents = Date.now() + "\n" + nonce;
         await this.writeToFile(file, contents);
         // Give some time for someone else to try to write to the file / race condition
@@ -199,12 +199,13 @@ export class StorageServiceImpl implements IStorageService {
     private async ensureStorageFolderExists(): Promise<void> {
         await mkdir(this.storagePath);
     }
-}
-export const generateNonce = () => {
-    let text = "";
-    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    for (let i = 0; i < 32; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    private generateNonce() {
+        let text = "";
+        const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        for (let i = 0; i < 32; i++) {
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        }
+        return text;
     }
-    return text;
 }
