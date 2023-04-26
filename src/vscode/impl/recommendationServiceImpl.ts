@@ -98,16 +98,16 @@ export class RecommendationServiceImpl implements IRecommendationService {
         return undefined;
     }
     
-    public async show(toExtension: string, ignoreTimelock?: boolean, overrideDescription?: string): Promise<void> {
+    public async show(toExtension: string, ignoreTimelock?: boolean, overrideDescription?: string): Promise<UserChoice | undefined> {
         // Show a single recommendation immediately, if certain conditions are met
         // Specifically, if the recommender is installed, and the recommended is not installed, 
-        // and the recommended has not been timelocked in this session
+        // and the recommended has not been timelocked in this session or ignored by user previously
         const fromExtension: string = this.extensionContext.extension.id;
         if(isExtensionInstalled(fromExtension) && !isExtensionInstalled(toExtension)) {
             const model: RecommendationModel|undefined = await this.storageService.readRecommendationModel();
             if( model && (ignoreTimelock || !model.timelocked.includes(toExtension)) ) {
                 const rec: Recommendation | undefined = model.recommendations.find((x) => x.extensionId === toExtension && x.sourceId === fromExtension);
-                if( rec ) {
+                if( rec && !rec.userIgnored ) {
                     const displayName = rec.extensionDisplayName || rec.extensionId;
                     const recToUse: Recommendation = {...rec};
                     if( overrideDescription ) {
@@ -122,6 +122,7 @@ export class RecommendationServiceImpl implements IRecommendationService {
                 }
             }
         }
+        return undefined;
     }
 
     public async showStartupRecommendations(): Promise<void> {
@@ -189,14 +190,16 @@ export class RecommendationServiceImpl implements IRecommendationService {
     protected collectShowNowMessage(id: string, displayName: string, primary: Recommendation, recommendationsForId: Recommendation[]): string {
         const fromExtensionId = primary.sourceId;
         const fromExtensionName = getInstalledExtensionName(fromExtensionId) || fromExtensionId;
-        const msg: string = `"${fromExtensionName}" recommends you install "${displayName}":\n${recommendationsForId[0].description}`
+        const msg: string = `"${fromExtensionName}" recommends you install "${displayName}":\n"${recommendationsForId[0].description}" `;
 
         const count = recommendationsForId.length;
         if( count === 1 ) {
             return msg;
         } else if( count > 1 ) {
             const clone = [...recommendationsForId].filter((x) => x.sourceId !== primary.sourceId || x.extensionId !== primary.extensionId);
-            return this.collectMultiCountMessage(id, displayName, clone);
+            const singlePlural = clone.length > 1 ? "extensions also recommend" : "extension also recommends";
+            const others = `(${clone.length} other ${singlePlural} this. ${this.linkToMore(id)})`
+            return msg + others;
         } else {
             return "An unknown extension recommends that you also install \"" + displayName + "\".";
         }
@@ -239,10 +242,10 @@ export class RecommendationServiceImpl implements IRecommendationService {
     }
 
     protected async displaySingleRecommendation(id: string, extensionDisplayName: string, 
-        recommenderList: string[], msg: string) {
+        recommenderList: string[], msg: string): Promise<UserChoice | undefined> {
         // Ensure command is registered before prompting the user
         this.registerSingleMarkdownCommand();
-        const choice = await promptUserUtil(msg);
+        const choice: UserChoice | undefined = await promptUserUtil(msg);
 
         // Timelock this regardless of what the user selects.
         await this.timelockRecommendationFor(id);
@@ -257,6 +260,7 @@ export class RecommendationServiceImpl implements IRecommendationService {
                 }
             }
         }
+        return choice;
     }
 
     protected async timelockRecommendationFor(id: string): Promise<void> {

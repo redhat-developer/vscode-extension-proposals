@@ -18,8 +18,9 @@ export interface IRecommendationService {
      *                       be shown in very important situatons, 
      *                       and is likely to annoy users if overused.
      * @param overrideDescription Customize the description / message and override the default for this recommendation
+     * @returns What the user choice was.
      */
-    show(toExtension: string, ignoreTimelock?: boolean, overrideDescription?: string): Promise<void>;
+    show(toExtension: string, ignoreTimelock?: boolean, overrideDescription?: string): Promise<UserChoice | undefined>;
 
     /**
      * Convenience function to help create a recommendation
