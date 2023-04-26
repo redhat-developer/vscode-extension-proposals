@@ -1,3 +1,7 @@
+/*-----------------------------------------------------------------------------------------------
+ *  Copyright (c) Red Hat, Inc. All rights reserved.
+ *  Licensed under the EPL v2.0 License. See LICENSE file in the project root for license information.
+ *-----------------------------------------------------------------------------------------------*/
 import { TelemetryService } from "@redhat-developer/vscode-redhat-telemetry/lib";
 import path from "path";
 import { ExtensionContext, commands, window, Uri } from "vscode";

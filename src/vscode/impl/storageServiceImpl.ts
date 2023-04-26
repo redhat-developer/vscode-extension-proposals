@@ -1,6 +1,9 @@
-import * as fs from 'fs';
+/*-----------------------------------------------------------------------------------------------
+ *  Copyright (c) Red Hat, Inc. All rights reserved.
+ *  Licensed under the EPL v2.0 License. See LICENSE file in the project root for license information.
+ *-----------------------------------------------------------------------------------------------*/
 import path from "path";
-import { env, workspace } from "vscode";
+import { env } from "vscode";
 import { RecommendationModel } from '../recommendationModel';
 import { IStorageService } from '../storageService';
 import { deleteFile, exists, mkdir, readFile, writeFile } from './util/fsUtil';

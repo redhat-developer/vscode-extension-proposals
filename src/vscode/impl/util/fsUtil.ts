@@ -1,3 +1,7 @@
+/*-----------------------------------------------------------------------------------------------
+ *  Copyright (c) Red Hat, Inc. All rights reserved.
+ *  Licensed under the EPL v2.0 License. See LICENSE file in the project root for license information.
+ *-----------------------------------------------------------------------------------------------*/
 import { Uri, workspace } from 'vscode';
 
 //Hacky way to get Text(En|De)code work in both Node and Webworker environments

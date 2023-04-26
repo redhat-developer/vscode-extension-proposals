@@ -1,4 +1,8 @@
-import { Recommendation, RecommendationModel } from "./recommendationModel";
+/*-----------------------------------------------------------------------------------------------
+ *  Copyright (c) Red Hat, Inc. All rights reserved.
+ *  Licensed under the EPL v2.0 License. See LICENSE file in the project root for license information.
+ *-----------------------------------------------------------------------------------------------*/
+import { RecommendationModel } from "./recommendationModel";
 
 export interface IStorageService {
     /**
