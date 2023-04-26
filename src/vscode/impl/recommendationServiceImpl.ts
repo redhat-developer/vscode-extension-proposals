@@ -94,13 +94,14 @@ export class RecommendationServiceImpl implements IRecommendationService {
         return undefined;
     }
     
-    public async show(fromExtension: string, toExtension: string, overrideDescription?: string): Promise<void> {
+    public async show(toExtension: string, ignoreTimelock?: boolean, overrideDescription?: string): Promise<void> {
         // Show a single recommendation immediately, if certain conditions are met
         // Specifically, if the recommender is installed, and the recommended is not installed, 
         // and the recommended has not been timelocked in this session
+        const fromExtension: string = this.extensionContext.extension.id;
         if(isExtensionInstalled(fromExtension) && !isExtensionInstalled(toExtension)) {
             const model: RecommendationModel|undefined = await this.storageService.readRecommendationModel();
-            if( model && !model.timelocked.includes(toExtension) ) {
+            if( model && (ignoreTimelock || !model.timelocked.includes(toExtension)) ) {
                 const rec: Recommendation | undefined = model.recommendations.find((x) => x.extensionId === toExtension && x.sourceId === fromExtension);
                 if( rec ) {
                     const displayName = rec.extensionDisplayName || rec.extensionId;
@@ -207,18 +208,13 @@ export class RecommendationServiceImpl implements IRecommendationService {
         if( ignoredCount === 0 && notIgnoredCount > 0 ) {
             const singlePlural = notIgnoredCount > 1 ? "extensions recommend" : "extension recommends";
             countMessage = `${notIgnoredCount} ${singlePlural} you install "${displayName}". `;
-        } else if( notIgnoredCount === 0 && ignoredCount > 0 ) {
-            // TODO this really should never happen. If they're all ignored it shouldn't show. 
-            const singlePlural = ignoredCount > 1 ? "extensions recommend" : "extension recommends";
-            countMessage = `${ignoredCount} previously ignored ${singlePlural} you install "${displayName}". `;
-        } else {
+        } else if( notIgnoredCount > 0 && ignoredCount > 0 ) {
             // one or more of ignored and not-ignored / new recommendations
             const rec = recommendationsForId.length > 1 ? "recommend" : "recommends";
-            const spNotIgnored = notIgnoredCount > 1 ? "extensions" : "extension";
+            const spTotal = (notIgnoredCount + ignoredCount) > 1 ? "extensions" : "extension";
             const spIgnored = ignoredCount > 1 ? "extensions" : "extension";
-            countMessage = `${notIgnoredCount} new ${spNotIgnored} and ${ignoredCount} previously ignored ${spIgnored} ${rec} you install "${displayName}". `;
+            countMessage = `${recommendationsForId.length} ${spTotal} (${notIgnoredCount} new) ${spIgnored} ${rec} you install "${displayName}". `;
         }
-
         const recommenderNames: string[] = recommendationsForId.map((x) => {
             const fromExtensionId = x.sourceId;
             const fromExtensionName = getInstalledExtensionName(fromExtensionId) || fromExtensionId;
@@ -229,7 +225,7 @@ export class RecommendationServiceImpl implements IRecommendationService {
         const withoutLast: string[] = recommenderNames.slice(0, -1).map((x) => "\"" + x + "\"");
         const withoutLastAddCommas: string = withoutLast.join(", ");
         const finalMsg = countMessage + "The recommending extensions are " + withoutLastAddCommas + " and " + lastName + ". ";
-        return finalMsg + this.linkToMore(id);;
+        return finalMsg + this.linkToMore(id);
     }
 
     protected findMode(arr: string[]) {

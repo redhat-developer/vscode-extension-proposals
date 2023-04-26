@@ -8,8 +8,14 @@ export interface IRecommendationService {
 
     /**
      * Show an already-registered recommendation immediately
+     * @param toExtension the extension being recommended
+     * @param ignoreTimelock show this message even if the recommended extension 
+     *                       is timelocked / not supposed to be shown. This should only
+     *                       be shown in very important situatons, 
+     *                       and is likely to annoy users if overused.
+     * @param overrideDescription Customize the description / message and override the default for this recommendation
      */
-    show(fromExtension: string, toExtension: string, overrideDescription?: string): Promise<void>;
+    show(toExtension: string, ignoreTimelock?: boolean, overrideDescription?: string): Promise<void>;
 
     /**
      * Convenience function to help create a recommendation
