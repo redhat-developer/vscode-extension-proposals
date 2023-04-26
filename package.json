@@ -1,5 +1,5 @@
 {
-  "name": "@redhat-developer/vscode-extension-proposal",
+  "name": "@redhat-developer/vscode-extension-proposals",
   "version": "0.0.8",
   "description": "Manages extension recommendations for VS Code",
   "main": "lib/index.js",
@@ -17,10 +17,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/redhat-developer/vscode-extension-recommender.git"
+    "url": "git+https://github.com/redhat-developer/vscode-extension-proposals.git"
   },
   "bugs": {
-    "url": "https://github.com/redhat-developer/vscode-extension-recommender/issues"
+    "url": "https://github.com/redhat-developer/vscode-extension-proposals/issues"
   },
   "author": "Red Hat",
   "license": "Apache-2.0",
