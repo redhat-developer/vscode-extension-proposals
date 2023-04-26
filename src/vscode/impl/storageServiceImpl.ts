@@ -4,7 +4,6 @@ import { env, workspace } from "vscode";
 import { RecommendationModel } from '../recommendationModel';
 import { IStorageService } from '../storageService';
 import { deleteFile, exists, mkdir, readFile, writeFile } from './util/fsUtil';
-import { generateNonce } from './util/MarkdownWebviewUtility';
 
 export class StorageServiceImpl implements IStorageService {
     private static PERSISTENCE_FILENAME: string = 'extension-recommender.model.json';
@@ -63,6 +62,7 @@ export class StorageServiceImpl implements IStorageService {
         }
         return false;
     }
+        
     private async acquireLockOneTry(endTime: number): Promise<boolean> {
         await this.deleteOldLockFile();
         const file = this.resolvePath(StorageServiceImpl.LOCK_FILENAME);
@@ -196,4 +196,12 @@ export class StorageServiceImpl implements IStorageService {
     private async ensureStorageFolderExists(): Promise<void> {
         await mkdir(this.storagePath);
     }
+}
+export const generateNonce = () => {
+    let text = "";
+    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for (let i = 0; i < 32; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
 }

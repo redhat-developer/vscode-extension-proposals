@@ -6,7 +6,6 @@ import { IRecommendationService } from "../recommendationService";
 import { IStorageService } from "../storageService";
 import { StorageServiceImpl } from "./storageServiceImpl";
 import { getInstalledExtensionName, isExtensionInstalled, promptUserUtil, installExtensionUtil } from "./vscodeUtil";
-import { MarkdownWebviewUtility } from "./util/MarkdownWebviewUtility";
 
 export const filterUnique = (value: any, index: number, self: any[]): boolean => self.indexOf(value) === index;
 
