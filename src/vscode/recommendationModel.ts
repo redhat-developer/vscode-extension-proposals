@@ -26,3 +26,24 @@ export enum UserChoice {
 	Never = "Never",
 	Later = "Later",
 }
+
+/**
+ * Telemetry Event
+ */
+export interface RecommendationTelemetryEvent {
+    type?: string;
+    name: string;
+    properties?: any;
+    measures?: any;
+    traits?: any;
+    context?: any;
+}
+/**
+ * Service for sending Telemetry events
+ */
+export interface RecommendationsTelemetryService {
+    /**
+     * Sends the Telemetry event
+     */
+    send(event: RecommendationTelemetryEvent): Promise<void>;
+}

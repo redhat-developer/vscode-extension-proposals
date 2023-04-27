@@ -2,10 +2,9 @@
  *  Copyright (c) Red Hat, Inc. All rights reserved.
  *  Licensed under the EPL v2.0 License. See LICENSE file in the project root for license information.
  *-----------------------------------------------------------------------------------------------*/
-import { TelemetryService } from "@redhat-developer/vscode-redhat-telemetry/lib";
 import path from "path";
 import { ExtensionContext, commands, window, Uri } from "vscode";
-import { Recommendation, RecommendationModel, UserChoice } from "../recommendationModel";
+import { Recommendation, RecommendationModel, RecommendationsTelemetryService, UserChoice } from "../recommendationModel";
 import { IRecommendationService } from "../recommendationService";
 import { IStorageService } from "../storageService";
 import { StorageServiceImpl } from "./storageServiceImpl";
@@ -21,8 +20,8 @@ export const COMMAND_MARKDOWN_API_RENDER = 'markdown.api.render';
 export class RecommendationServiceImpl implements IRecommendationService {
     private storageService: IStorageService;
     private extensionContext: ExtensionContext;
-    private telemetryService: TelemetryService | undefined;
-    constructor(context: ExtensionContext, telemetryService?: TelemetryService) {
+    private telemetryService: RecommendationsTelemetryService | undefined;
+    constructor(context: ExtensionContext, telemetryService?: RecommendationsTelemetryService) {
         this.extensionContext = context;
         this.telemetryService = telemetryService;
         this.storageService = this.createStorageService(context);
