@@ -141,17 +141,18 @@ export class RecommendationServiceImpl implements IRecommendationService {
     }
 
     protected async showStartupRecommendationsForSingleExtension( model: RecommendationModel, id: string): Promise<void> {
-        const recommendationsForId: Recommendation[] = 
+        const startupRecommendationsForId: Recommendation[] = 
             model.recommendations.filter((x: Recommendation) => x.extensionId === id)
-            .filter((x: Recommendation) => isExtensionInstalled(x.sourceId));
-        const ignoredCount = recommendationsForId.filter((x) => x.userIgnored === true).length;
-        const allIgnored: boolean = recommendationsForId.length === ignoredCount;
-        const count = recommendationsForId.length;
+            .filter((x: Recommendation) => isExtensionInstalled(x.sourceId))
+            .filter((x: Recommendation) => x.shouldShowOnStartup);
+        const ignoredCount = startupRecommendationsForId.filter((x) => x.userIgnored === true).length;
+        const allIgnored: boolean = startupRecommendationsForId.length === ignoredCount;
+        const count = startupRecommendationsForId.length;
         if( count === 0 || allIgnored) 
             return;
-        const displayName = this.findMode(recommendationsForId.map((x) => x.extensionDisplayName)) || id;
-        const msg = this.collectMessage(id, displayName, recommendationsForId);
-        this.displaySingleRecommendation(id, displayName, recommendationsForId.map((x) => x.sourceId), msg);
+        const displayName = this.findMode(startupRecommendationsForId.map((x) => x.extensionDisplayName)) || id;
+        const msg = this.collectMessage(id, displayName, startupRecommendationsForId);
+        this.displaySingleRecommendation(id, displayName, startupRecommendationsForId.map((x) => x.sourceId), msg);
     }
 
     protected safeDescriptionWithPeriod(description: string): string {
