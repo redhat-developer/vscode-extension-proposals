@@ -2,7 +2,7 @@
  *  Copyright (c) Red Hat, Inc. All rights reserved.
  *  Licensed under the EPL v2.0 License. See LICENSE file in the project root for license information.
  *-----------------------------------------------------------------------------------------------*/
-import { Recommendation, UserChoice } from "./recommendationModel";
+import { Level, Recommendation, UserChoice } from "./recommendationModel";
 
 export interface IRecommendationService {
     /**
@@ -20,7 +20,7 @@ export interface IRecommendationService {
      * @param overrideDescription Customize the description / message and override the default for this recommendation
      * @returns What the user choice was.
      */
-    show(toExtension: string, ignoreTimelock?: boolean, overrideDescription?: string): Promise<UserChoice | undefined>;
+    show(toExtension: string, ignoreTimelock?: boolean, overrideDescription?: string, level?: Level): Promise<UserChoice | undefined>;
 
     /**
      * Convenience function to help create a recommendation

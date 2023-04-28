@@ -20,6 +20,11 @@ export interface Recommendation {
     userIgnored: boolean,
 }
 
+export enum Level {
+    Info = "Info",
+    Warn = "Warn",
+    Error = "Error",
+}
 
 export enum UserChoice {
 	Install = "Install",
