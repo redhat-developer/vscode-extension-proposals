@@ -4,7 +4,7 @@
  *-----------------------------------------------------------------------------------------------*/
 import path from "path";
 import { ExtensionContext, commands, window, Uri } from "vscode";
-import { Recommendation, RecommendationModel, RecommendationsTelemetryService, UserChoice } from "../recommendationModel";
+import { Level, Recommendation, RecommendationModel, RecommendationsTelemetryService, UserChoice } from "../recommendationModel";
 import { IRecommendationService } from "../recommendationService";
 import { IStorageService } from "../storageService";
 import { StorageServiceImpl } from "./storageServiceImpl";
@@ -97,7 +97,7 @@ export class RecommendationServiceImpl implements IRecommendationService {
         return undefined;
     }
     
-    public async show(toExtension: string, ignoreTimelock?: boolean, overrideDescription?: string): Promise<UserChoice | undefined> {
+    public async show(toExtension: string, ignoreTimelock?: boolean, overrideDescription?: string, level?: Level): Promise<UserChoice | undefined> {
         // Show a single recommendation immediately, if certain conditions are met
         // Specifically, if the recommender is installed, and the recommended is not installed, 
         // and the recommended has not been timelocked in this session or ignored by user previously
@@ -117,7 +117,7 @@ export class RecommendationServiceImpl implements IRecommendationService {
                         .filter((x: Recommendation) => isExtensionInstalled(x.sourceId));
         
                     const msg = this.collectShowNowMessage(toExtension, displayName, recToUse, recommendationsForId);
-                    this.displaySingleRecommendation(toExtension, displayName, [recToUse.sourceId], msg);
+                    this.displaySingleRecommendation(toExtension, displayName, [recToUse.sourceId], msg, level || Level.Info);
                 }
             }
         }
@@ -152,7 +152,7 @@ export class RecommendationServiceImpl implements IRecommendationService {
             return;
         const displayName = this.findMode(startupRecommendationsForId.map((x) => x.extensionDisplayName)) || id;
         const msg = this.collectMessage(id, displayName, startupRecommendationsForId);
-        this.displaySingleRecommendation(id, displayName, startupRecommendationsForId.map((x) => x.sourceId), msg);
+        this.displaySingleRecommendation(id, displayName, startupRecommendationsForId.map((x) => x.sourceId), msg, Level.Info);
     }
 
     protected safeDescriptionWithPeriod(description: string): string {
@@ -242,10 +242,10 @@ export class RecommendationServiceImpl implements IRecommendationService {
     }
 
     protected async displaySingleRecommendation(id: string, extensionDisplayName: string, 
-        recommenderList: string[], msg: string): Promise<UserChoice | undefined> {
+        recommenderList: string[], msg: string, level: Level): Promise<UserChoice | undefined> {
         // Ensure command is registered before prompting the user
         this.registerSingleMarkdownCommand();
-        const choice: UserChoice | undefined = await promptUserUtil(msg);
+        const choice: UserChoice | undefined = await promptUserUtil(msg, level);
 
         // Timelock this regardless of what the user selects.
         await this.timelockRecommendationFor(id);

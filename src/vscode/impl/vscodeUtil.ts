@@ -3,11 +3,18 @@
  *  Licensed under the EPL v2.0 License. See LICENSE file in the project root for license information.
  *-----------------------------------------------------------------------------------------------*/
 import {commands, Disposable, extensions, window} from 'vscode';
-import { UserChoice } from '../recommendationModel';
+import { Level, UserChoice } from '../recommendationModel';
 
-export const promptUserUtil = async (message: string): Promise<UserChoice | undefined> => {
+export const promptUserUtil = async (message: string, level: Level): Promise<UserChoice | undefined> => {
     const actions: Array<string> = Object.keys(UserChoice);
-    const choice = await window.showInformationMessage(message, ...actions);
+    let choice = undefined;
+    if( level === Level.Info ) {
+        choice = await window.showInformationMessage(message, ...actions);
+    } else if( level === Level.Warn ) {
+        choice = await window.showWarningMessage(message, ...actions);
+    } else if( level === Level.Error ) {
+        choice = await window.showErrorMessage(message, ...actions);
+    }
     if (choice) {
         return choice as UserChoice;
     }
