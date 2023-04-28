@@ -7,7 +7,10 @@ import { RecommendationServiceImpl } from "./impl/recommendationServiceImpl";
 import { RecommendationsTelemetryService } from "./recommendationModel";
 import { IRecommendationService } from "./recommendationService";
 export class RecommendationCore {
-    public static getService(context: ExtensionContext, telemetryService?: RecommendationsTelemetryService): IRecommendationService {
-        return new RecommendationServiceImpl(context, telemetryService);
+    public static getService(context: ExtensionContext, telemetryService?: RecommendationsTelemetryService): IRecommendationService | undefined {
+        if( context && context.globalStorageUri && context.globalStorageUri.fsPath) {
+            return new RecommendationServiceImpl(context, telemetryService);
+        }
+        return undefined;
     }
 }
