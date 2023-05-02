@@ -5,8 +5,8 @@
 import {commands, Disposable, extensions, window} from 'vscode';
 import { Level, UserChoice } from '../recommendationModel';
 
-export const promptUserUtil = async (message: string, level: Level): Promise<UserChoice | undefined> => {
-    const actions: Array<string> = Object.keys(UserChoice);
+export const promptUserUtil = async (message: string, level: Level, hideNever: boolean): Promise<UserChoice | undefined> => {
+    const actions: Array<string> = Object.keys(UserChoice).filter((x) => x !== UserChoice.Never || !hideNever);
     let choice = undefined;
     if( level === Level.Info ) {
         choice = await window.showInformationMessage(message, ...actions);

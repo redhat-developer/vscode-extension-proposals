@@ -17,6 +17,11 @@ export const filterUnique = (value: any, index: number, self: any[]): boolean =>
 */
 export const COMMAND_MARKDOWN_API_RENDER = 'markdown.api.render';
 
+export enum IgnoreBehavior {
+    StartupOnly = "StartupOnly",
+    All = "All",
+    SingleRecommendation = "SingleRecommendation",
+}
 export class RecommendationServiceImpl implements IRecommendationService {
     private storageService: IStorageService;
     private extensionContext: ExtensionContext;
@@ -97,7 +102,7 @@ export class RecommendationServiceImpl implements IRecommendationService {
         return undefined;
     }
     
-    public async show(toExtension: string, ignoreTimelock?: boolean, overrideDescription?: string, level?: Level): Promise<UserChoice | undefined> {
+    public async show(toExtension: string, ignoreTimelock: boolean, overrideDescription?: string, level?: Level, hideNever?: boolean): Promise<UserChoice | undefined> {
         // Show a single recommendation immediately, if certain conditions are met
         // Specifically, if the recommender is installed, and the recommended is not installed, 
         // and the recommended has not been timelocked in this session or ignored by user previously
@@ -106,7 +111,7 @@ export class RecommendationServiceImpl implements IRecommendationService {
             const model: RecommendationModel|undefined = await this.storageService.readRecommendationModel();
             if( model && (ignoreTimelock || !model.timelocked.includes(toExtension)) ) {
                 const rec: Recommendation | undefined = model.recommendations.find((x) => x.extensionId === toExtension && x.sourceId === fromExtension);
-                if( rec && !rec.userIgnored ) {
+                if( rec && !rec.userIgnored) {
                     const displayName = rec.extensionDisplayName || rec.extensionId;
                     const recToUse: Recommendation = {...rec};
                     if( overrideDescription ) {
@@ -115,9 +120,10 @@ export class RecommendationServiceImpl implements IRecommendationService {
                     const recommendationsForId: Recommendation[] = 
                         model.recommendations.filter((x: Recommendation) => x.extensionId === toExtension)
                         .filter((x: Recommendation) => isExtensionInstalled(x.sourceId));
-        
+                    const hideNeverVal = (hideNever === undefined ? false : hideNever);
                     const msg = this.collectShowNowMessage(toExtension, displayName, recToUse, recommendationsForId);
-                    this.displaySingleRecommendation(toExtension, displayName, [recToUse.sourceId], msg, level || Level.Info);
+                    this.displaySingleRecommendation(toExtension, displayName, [recToUse.sourceId], msg, 
+                        level || Level.Info, IgnoreBehavior.SingleRecommendation, hideNeverVal);
                 }
             }
         }
@@ -152,7 +158,8 @@ export class RecommendationServiceImpl implements IRecommendationService {
             return;
         const displayName = this.findMode(startupRecommendationsForId.map((x) => x.extensionDisplayName)) || id;
         const msg = this.collectMessage(id, displayName, startupRecommendationsForId);
-        this.displaySingleRecommendation(id, displayName, startupRecommendationsForId.map((x) => x.sourceId), msg, Level.Info);
+        const sourceIds = startupRecommendationsForId.map((x) => x.sourceId);
+        this.displaySingleRecommendation(id, displayName, sourceIds, msg, Level.Info, IgnoreBehavior.StartupOnly, false);
     }
 
     protected safeDescriptionWithPeriod(description: string): string {
@@ -241,11 +248,15 @@ export class RecommendationServiceImpl implements IRecommendationService {
         ).pop();
     }
 
-    protected async displaySingleRecommendation(id: string, extensionDisplayName: string, 
-        recommenderList: string[], msg: string, level: Level): Promise<UserChoice | undefined> {
+    protected async displaySingleRecommendation(
+        id: string, extensionDisplayName: string, 
+        recommenderList: string[], msg: string, level: Level, 
+        ignoreBehavior: IgnoreBehavior, hideNever: boolean, 
+        singleRec?: Recommendation): Promise<UserChoice | undefined> {
+
         // Ensure command is registered before prompting the user
         this.registerSingleMarkdownCommand();
-        const choice: UserChoice | undefined = await promptUserUtil(msg, level);
+        const choice: UserChoice | undefined = await promptUserUtil(msg, level, hideNever);
 
         // Timelock this regardless of what the user selects.
         await this.timelockRecommendationFor(id);
@@ -253,7 +264,14 @@ export class RecommendationServiceImpl implements IRecommendationService {
             this.fireTelemetrySuccess(id, recommenderList, choice);
     
             if( choice === UserChoice.Never) {
-                await this.markIgnored(id);
+                if( ignoreBehavior === IgnoreBehavior.All) {
+                    await this.markIgnored(id, false);
+                } else if( ignoreBehavior === IgnoreBehavior.StartupOnly ) {
+                    await this.markIgnored(id, true);
+                } else {
+                    if( singleRec ) 
+                        await this.markIgnoredSingleRec(singleRec);
+                }
             } else {
                 if (choice === UserChoice.Install) {
                     await installExtensionUtil(id, extensionDisplayName, 30000);
@@ -332,13 +350,28 @@ export class RecommendationServiceImpl implements IRecommendationService {
 
     }
 
-    protected async markIgnored(id: string) {
+    protected async markIgnored(id: string, startupOnly: boolean) {
         // Mark all CURRENT (not future, from a new unknown extension) 
         // recommendations to the given id. 
         const newSession = await this.storageService.runWithLock(async (model: RecommendationModel): Promise<RecommendationModel> => {
             const current: Recommendation[] = model.recommendations;
             for( let i = 0; i < current.length; i++ ) {
                 if( current[i].extensionId === id ) {
+                    if( !startupOnly || current[i].shouldShowOnStartup)
+                        current[i].userIgnored = true;
+                }
+            }
+            return model;
+        });
+    }
+
+    protected async markIgnoredSingleRec(rec: Recommendation) {
+        // Mark all CURRENT (not future, from a new unknown extension) 
+        // recommendations to the given id. 
+        const newSession = await this.storageService.runWithLock(async (model: RecommendationModel): Promise<RecommendationModel> => {
+            const current: Recommendation[] = model.recommendations;
+            for( let i = 0; i < current.length; i++ ) {
+                if( current[i].extensionId === rec.extensionId && current[i].sourceId === rec.sourceId ) {
                     current[i].userIgnored = true;
                 }
             }
