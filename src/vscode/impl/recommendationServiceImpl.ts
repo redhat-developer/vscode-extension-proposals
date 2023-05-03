@@ -226,8 +226,7 @@ export class RecommendationServiceImpl implements IRecommendationService {
             // one or more of ignored and not-ignored / new recommendations
             const rec = recommendationsForId.length > 1 ? "recommend" : "recommends";
             const spTotal = (notIgnoredCount + ignoredCount) > 1 ? "extensions" : "extension";
-            const spIgnored = ignoredCount > 1 ? "extensions" : "extension";
-            countMessage = `${recommendationsForId.length} ${spTotal} (${notIgnoredCount} new) ${spIgnored} ${rec} you install "${displayName}". `;
+            countMessage = `${recommendationsForId.length} ${spTotal} (${notIgnoredCount} new) ${rec} you install "${displayName}". `;
         }
         const recommenderNames: string[] = recommendationsForId.map((x) => {
             const fromExtensionId = x.sourceId;
