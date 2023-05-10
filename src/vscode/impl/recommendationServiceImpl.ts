@@ -255,13 +255,12 @@ export class RecommendationServiceImpl implements IRecommendationService {
 
         // Ensure command is registered before prompting the user
         this.registerSingleMarkdownCommand();
-        const choice: UserChoice | undefined = await promptUserUtil(msg, level, hideNever);
-
         // Timelock this regardless of what the user selects.
         await this.timelockRecommendationFor(id);
+        const choice: UserChoice | undefined = await promptUserUtil(msg, level, hideNever);
+        const safeChoice = choice ? choice : 'canceled';
+        this.fireTelemetrySuccess(id, recommenderList, safeChoice);
         if (choice) {
-            this.fireTelemetrySuccess(id, recommenderList, choice);
-    
             if( choice === UserChoice.Never) {
                 if( ignoreBehavior === IgnoreBehavior.All) {
                     await this.markIgnored(id, false);
