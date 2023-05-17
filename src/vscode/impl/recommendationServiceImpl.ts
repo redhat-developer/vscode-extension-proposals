@@ -123,7 +123,7 @@ export class RecommendationServiceImpl implements IRecommendationService {
                     const hideNeverVal = (hideNever === undefined ? false : hideNever);
                     const msg = this.collectShowNowMessage(toExtension, displayName, recToUse, recommendationsForId);
                     this.displaySingleRecommendation(toExtension, displayName, [recToUse.sourceId], msg, 
-                        level || Level.Info, IgnoreBehavior.SingleRecommendation, hideNeverVal);
+                        level || Level.Info, IgnoreBehavior.SingleRecommendation, hideNeverVal, rec);
                 }
             }
         }
@@ -266,9 +266,8 @@ export class RecommendationServiceImpl implements IRecommendationService {
                     await this.markIgnored(id, false);
                 } else if( ignoreBehavior === IgnoreBehavior.StartupOnly ) {
                     await this.markIgnored(id, true);
-                } else {
-                    if( singleRec ) 
-                        await this.markIgnoredSingleRec(singleRec);
+                } else if( ignoreBehavior === IgnoreBehavior.SingleRecommendation && singleRec ){
+                    await this.markIgnoredSingleRec(singleRec);
                 }
             } else {
                 if (choice === UserChoice.Install) {
