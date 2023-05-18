@@ -325,7 +325,7 @@ export class RecommendationServiceImpl implements IRecommendationService {
                 if( x.shouldShowOnStartup === y.shouldShowOnStartup ) {
                     return x.userIgnored === y.userIgnored ? 0 : x.userIgnored ? 1 : -1;
                 }
-                return x.shouldShowOnStartup ? 1 : -1;
+                return x.shouldShowOnStartup ? -1 : 1;
             });
 
             const header = `# Extensions recommending "${displayName}"\n`;
