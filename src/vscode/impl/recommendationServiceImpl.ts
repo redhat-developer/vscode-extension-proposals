@@ -321,28 +321,34 @@ export class RecommendationServiceImpl implements IRecommendationService {
                 .filter(filterUnique)
                 .filter((x) => !isExtensionInstalled(x.extensionId));
             const displayName = this.findMode(recommendedExtension.map((x) => x.extensionDisplayName)) || id;
-            const sorted: Recommendation[] = recommendedExtension.sort((x, y) => x.userIgnored === y.userIgnored ? 0 : x.userIgnored ? 1 : -1)
+            const sorted: Recommendation[] = recommendedExtension.sort((x, y) => { 
+                if( x.shouldShowOnStartup === y.shouldShowOnStartup ) {
+                    return x.userIgnored === y.userIgnored ? 0 : x.userIgnored ? 1 : -1;
+                }
+                return x.shouldShowOnStartup ? 1 : -1;
+            });
+
             const header = `# Extensions recommending "${displayName}"\n`;
             const lines: string[] = [];
             for( let i = 0; i < sorted.length; i++ ) {
                 const r = sorted[i];
                 lines.push("## " + getInstalledExtensionName(r.sourceId));
-                lines.push(r.description);
+                lines.push("Reason for recommendation: " + r.description);
                 if( r.userIgnored ) {
-                    lines.push("This recommendation was previously ignored by user.");
+                    lines.push("- This recommendation was previously ignored by the user.");
+                }
+                if( !r.shouldShowOnStartup ) {
+                    lines.push("- This recommendation is triggered only in specific situations or workflows.");
                 }
             }
+
             const mdString = header + lines.join("\n");
-            // TODO
-            // Could persist this mdString into a special file and just open it 
-            // via the following:
             const path = await this.storageService.writeKey(id, mdString);
             if(path)
                 commands.executeCommand("markdown.showPreview", Uri.parse(path));
             else {
                 // idk, show warning?
             }
-            //new MarkdownWebviewUtility().show(mdString, "Recommendations: " + displayName);
         }
 
     }
