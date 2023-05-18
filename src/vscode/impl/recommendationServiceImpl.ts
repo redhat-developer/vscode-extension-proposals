@@ -333,7 +333,7 @@ export class RecommendationServiceImpl implements IRecommendationService {
             for( let i = 0; i < sorted.length; i++ ) {
                 const r = sorted[i];
                 lines.push("## " + getInstalledExtensionName(r.sourceId));
-                lines.push("Reason for recommendation: " + r.description);
+                lines.push("Reason: " + r.description);
                 if( r.userIgnored ) {
                     lines.push("- This recommendation was previously ignored by the user.");
                 }
