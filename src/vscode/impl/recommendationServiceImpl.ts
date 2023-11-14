@@ -3,7 +3,7 @@
  *  Licensed under the EPL v2.0 License. See LICENSE file in the project root for license information.
  *-----------------------------------------------------------------------------------------------*/
 import path from "path";
-import { ExtensionContext, commands, window, Uri } from "vscode";
+import { ExtensionContext, commands, window, Uri, workspace } from "vscode";
 import { Level, Recommendation, RecommendationModel, RecommendationsTelemetryService, UserChoice } from "../recommendationModel";
 import { IRecommendationService } from "../recommendationService";
 import { IStorageService } from "../storageService";
@@ -46,6 +46,14 @@ export class RecommendationServiceImpl implements IRecommendationService {
             // Return fast (ie, don't await) so as not to slow down caller
             this.showStartupRecommendations();
         }
+    }
+
+    protected ignoreRecommendations(): boolean {
+        const ignore = workspace.getConfiguration().get('extensions.ignoreRecommendations');
+        if( ignore ) {
+            return true;
+        }
+        return false;
     }
 
     public create(extensionId: string, 
@@ -106,6 +114,10 @@ export class RecommendationServiceImpl implements IRecommendationService {
         // Show a single recommendation immediately, if certain conditions are met
         // Specifically, if the recommender is installed, and the recommended is not installed, 
         // and the recommended has not been timelocked in this session or ignored by user previously
+        if( this.ignoreRecommendations()) {
+            return;
+        }
+        
         const fromExtension: string = this.extensionContext.extension.id;
         if(isExtensionInstalled(fromExtension) && !isExtensionInstalled(toExtension)) {
             const model: RecommendationModel|undefined = await this.storageService.readRecommendationModel();
@@ -134,6 +146,9 @@ export class RecommendationServiceImpl implements IRecommendationService {
         // wait 6 seconds for other tools to start up
         await new Promise(resolve => setTimeout(resolve, 6000));
         // Then show the dialogs
+        if( this.ignoreRecommendations()) {
+            return;
+        }
         const model: RecommendationModel|undefined = await this.storageService.readRecommendationModel();        
         if( model ) {
             const recommendedExtension: string[] = model.recommendations
