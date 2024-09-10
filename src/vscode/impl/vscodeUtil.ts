@@ -2,8 +2,11 @@
  *  Copyright (c) Red Hat, Inc. All rights reserved.
  *  Licensed under the EPL v2.0 License. See LICENSE file in the project root for license information.
  *-----------------------------------------------------------------------------------------------*/
-import {commands, Disposable, extensions, window} from 'vscode';
+import {commands, Disposable, extensions, window, workspace} from 'vscode';
 import { Level, UserChoice } from '../recommendationModel';
+import path from 'path';
+import { existsSync } from 'fs';
+import { readFile } from './util/fsUtil';
 
 export const promptUserUtil = async (message: string, level: Level, hideNever: boolean): Promise<UserChoice | undefined> => {
     const actions: Array<string> = Object.keys(UserChoice).filter((x) => x !== UserChoice.Never || !hideNever);
@@ -55,4 +58,53 @@ export const getInstalledExtensionName = (id: string): string | undefined => {
     }).finally(() => {  
         installListenerDisposable.dispose();
     });
+ }
+
+ export const getExtensionConfigurationFile = (): string | undefined => {
+    if (workspace.workspaceFolders !== undefined) {
+        if (workspace.workspaceFolders.length == 1) {
+            const file = path.resolve(workspace.workspaceFolders[0].uri.path, '.vscode', 'extensions.json');
+            if (existsSync(file)) {
+                return file;
+            }
+        } else {
+            const file = workspace.workspaceFile?.path;
+            if (file !== undefined && existsSync(file)) {
+                return file;
+            }
+        }
+    }
+    return undefined;
+ }
+
+export const readExtensionConfigurationFile = async (): Promise<string | undefined> => {
+    const extensionConfigFile = getExtensionConfigurationFile();
+    if (extensionConfigFile !== undefined) {
+        try {
+            const jsonData = await readFile(extensionConfigFile);
+            return jsonData;
+        } catch (err) {
+            // continue
+        }
+    }
+    return undefined;
+}
+
+export const isUnwantedRecommendation = async (toExtension: string, data?: string): Promise<boolean> => {
+    let jsonData;
+    if (data) {
+        jsonData = data;
+    } else {
+        jsonData = await readExtensionConfigurationFile();
+    }
+
+    if (jsonData !== undefined) {
+        let json = JSON.parse(jsonData);
+        if (workspace.workspaceFile?.path !== undefined) {
+            json = json['extensions'];
+        }
+        const unwantedRecommendations = json['unwantedRecommendations'];
+        return !!unwantedRecommendations && unwantedRecommendations.length > 0 && unwantedRecommendations.includes(toExtension);
+    }
+    return false;
 }

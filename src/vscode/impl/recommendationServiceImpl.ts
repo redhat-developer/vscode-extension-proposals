@@ -8,7 +8,7 @@ import { Level, Recommendation, RecommendationModel, RecommendationsTelemetrySer
 import { IRecommendationService } from "../recommendationService";
 import { IStorageService } from "../storageService";
 import { StorageServiceImpl } from "./storageServiceImpl";
-import { getInstalledExtensionName, isExtensionInstalled, promptUserUtil, installExtensionUtil } from "./vscodeUtil";
+import { getInstalledExtensionName, isExtensionInstalled, promptUserUtil, installExtensionUtil, isUnwantedRecommendation, readExtensionConfigurationFile } from "./vscodeUtil";
 
 export const filterUnique = (value: any, index: number, self: any[]): boolean => self.indexOf(value) === index;
 
@@ -114,7 +114,7 @@ export class RecommendationServiceImpl implements IRecommendationService {
         // Show a single recommendation immediately, if certain conditions are met
         // Specifically, if the recommender is installed, and the recommended is not installed, 
         // and the recommended has not been timelocked in this session or ignored by user previously
-        if( this.ignoreRecommendations()) {
+        if( this.ignoreRecommendations() || await isUnwantedRecommendation(toExtension)) {
             return;
         }
         
@@ -151,10 +151,19 @@ export class RecommendationServiceImpl implements IRecommendationService {
         }
         const model: RecommendationModel|undefined = await this.storageService.readRecommendationModel();        
         if( model ) {
-            const recommendedExtension: string[] = model.recommendations
+            const recommendedExtension: string[] = [];
+            const filteredExtension: string[] = model.recommendations
                 .map((x) => x.extensionId)
                 .filter(filterUnique)
                 .filter((x) => !isExtensionInstalled(x));
+
+            const jsonData = await readExtensionConfigurationFile();
+            await Promise.all(
+                filteredExtension.map(async (x) => {
+                    if (! await isUnwantedRecommendation(x, jsonData)) {
+                        recommendedExtension.push(x);
+                    }
+                }));
             for( let i = 0; i < recommendedExtension.length; i++ ) {
                 this.showStartupRecommendationsForSingleExtension(model, recommendedExtension[i]);
             }
