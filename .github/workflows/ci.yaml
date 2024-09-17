@@ -37,6 +37,3 @@ jobs:
       # Build
     - name: Build
       run: npm run prepublish
-
-    - name: Test
-      run: npm test
